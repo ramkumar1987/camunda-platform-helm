@@ -776,7 +776,7 @@ zeebe:
     ## @param zeebe.podDisruptionBudget.enabled if true a pod disruption budget is defined for the brokers
     enabled: false
     ## @param zeebe.podDisruptionBudget.minAvailable can be used to set how many pods should be available. Be aware that if minAvailable is set, maxUnavailable will not be set (they are mutually exclusive).
-    minAvailable: ""
+    minAvailable: 3
     ## @param zeebe.podDisruptionBudget.maxUnavailable can be used to set how many pods should be at max. unavailable
     maxUnavailable: 1
 
@@ -972,7 +972,7 @@ zeebeGateway:
     ## @param zeebeGateway.podDisruptionBudget.minAvailable can be used to set how many pods should be available. Be aware that if minAvailable is set, maxUnavailable will not be set (they are mutually exclusive).
     minAvailable: 1
     ## @param zeebeGateway.podDisruptionBudget.maxUnavailable can be used to set how many pods should be at max. unavailable
-    maxUnavailable: ""
+    maxUnavailable: 1
 
   ## @extra zeebeGateway.resources configuration to set request and limit configuration for the container https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits
   ## @param zeebeGateway.resources.requests.cpu
@@ -2504,7 +2504,7 @@ identity:
   externalDatabase:
     enabled: false
     host: ""
-    port: ""
+    port: 443
     username: ""
     database: ""
     password: ""
