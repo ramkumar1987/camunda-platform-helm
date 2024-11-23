@@ -200,12 +200,74 @@ The following values inside your values.yaml need to be set but were not:
 {{- end }}
 
 {{/*
+**************************************************************
+Deprecation helpers.
+**************************************************************
+*/}}
+
+{{/*
+camundaPlatform.keyRenamed
+Fail with message when the old values file key is used and show the new key.
+Usage:
+{{ include "camundaPlatform.keyRenamed" (dict
+  "condition" (.Values.identity.keycloak)
+  "oldName" "identity.keycloak"
+  "newName" "identityKeycloak"
+) }}
+*/}}
+{{- define "camundaPlatform.keyRenamed" }}
+  {{- if .condition }}
+    {{- $errorMessage := printf
+        "[camunda][error] The Helm values file key changed from \"%s\" to \"%s\". %s %s"
+        .oldName .newName
+        "For more details, please check Camunda Helm chart documentation."
+        "https://docs.camunda.io/docs/self-managed/setup/upgrade/#version-update-instructions"
+    -}}
+    {{ printf "\n%s" $errorMessage | trimSuffix "\n"| fail }}
+  {{- end }}
+{{- end -}}
+
+
+{{/*
+camundaPlatform.keyRemoved
+Fail with message when the old values file key is used.
+Usage:
+{{ include "camundaPlatform.keyRenamed" (dict
+  "condition" (.Values.identity.keycloak)
+  "oldName" "identity.keycloak"
+) }}
+*/}}
+{{- define "camundaPlatform.keyRemoved" }}
+  {{- if .condition }}
+    {{- $errorMessage := printf
+        "[camunda][error] The Helm values file key \"%s\" has been removed. %s %s"
+        .oldName
+        "For more details, please check Camunda Helm chart documentation."
+        "https://docs.camunda.io/docs/self-managed/setup/upgrade/#version-update-instructions"
+    -}}
+    {{ printf "\n%s" $errorMessage | trimSuffix "\n"| fail }}
+  {{- end }}
+{{- end -}}
+
+
+{{/*
+*******************************************************************************
 Camunda 8.7 cycle deprecated keys.
 
 Fail with a message when old values syntax is used.
 Chart Version: 12.0.0
+*******************************************************************************
 */}}
 
+{{/*
+*******************************************************************************
+Global
+*******************************************************************************
+*/}}
+
+{{/*
+- removed: global.multiregion.installationType
+*/}}
 {{- if hasKey .Values.global.multiregion "installationType" }}
   {{- $errorMessage := printf "[camunda][error] %s %s %s"
       "The option \"global.multiregion.installationType\" has been removed."
@@ -214,3 +276,158 @@ Chart Version: 12.0.0
   -}}
   {{ printf "\n%s" $errorMessage | trimSuffix "\n"| fail }}
 {{- end }}
+
+{{/*
+- changed: global.elasticsearch.url => from string to dict.
+- renamed: global.elasticsearch.protocol => global.elasticsearch.url.protocol
+- renamed: global.elasticsearch.host => global.elasticsearch.url.host
+- renamed: global.elasticsearch.port => global.elasticsearch.url.port
+*/}}
+
+{{ include "camundaPlatform.keyRenamed" (dict
+  "condition" (eq (kindOf .Values.global.elasticsearch.url) "string")
+  "oldName" "global.elasticsearch.url: \"\" (string)"
+  "newName" "global.elasticsearch.url: {} (dict)"
+) }}
+
+{{ include "camundaPlatform.keyRenamed" (dict
+  "condition" (.Values.global.elasticsearch.protocol)
+  "oldName" "global.elasticsearch.protocol"
+  "newName" "global.elasticsearch.url.protocol"
+) }}
+
+{{ include "camundaPlatform.keyRenamed" (dict
+  "condition" (.Values.global.elasticsearch.host)
+  "oldName" "global.elasticsearch.host"
+  "newName" "global.elasticsearch.url.host"
+) }}
+
+{{ include "camundaPlatform.keyRenamed" (dict
+  "condition" (.Values.global.elasticsearch.port)
+  "oldName" "global.elasticsearch.port"
+  "newName" "global.elasticsearch.url.port"
+) }}
+
+{{/*
+*******************************************************************************
+Identity.
+*******************************************************************************
+*/}}
+
+{{- if .Values.identity.enabled -}}
+{{/*
+- renamed: identity.keycloak => identityKeycloak
+*/}}
+
+{{ include "camundaPlatform.keyRenamed" (dict
+  "condition" (.Values.identity.keycloak)
+  "oldName" "identity.keycloak"
+  "newName" "identityKeycloak"
+) }}
+
+{{/*
+- renamed: identity.postgresql => identityPostgresql
+*/}}
+
+{{ include "camundaPlatform.keyRenamed" (dict
+  "condition" (.Values.identity.postgresql)
+  "oldName" "identity.postgresql"
+  "newName" "identityPostgresql"
+) }}
+{{- end }}
+
+{{/*
+*******************************************************************************
+Web Modeler.
+*******************************************************************************
+*/}}
+
+{{- if .Values.webModeler.enabled -}}
+  {{/*
+  - renamed: postgresql => webModelerPostgresql
+  */}}
+
+  {{ include "camundaPlatform.keyRenamed" (dict
+    "condition" (.Values.postgresql)
+    "oldName" "postgresql"
+    "newName" "webModelerPostgresql"
+  ) }}
+{{- end }}
+
+{{/*
+*******************************************************************************
+Core replacment (Zeebe, Zeebe Gateway, Operate, Optimize, Tasklist).
+*******************************************************************************
+*/}}
+
+{{- if (.Values.zeebe).enabled -}}
+  {{ include "camundaPlatform.keyRemoved" (dict
+    "condition" (.Values.zeebe)
+    "oldName" "zeebe"
+  ) }}
+{{- end }}
+
+{{- if or (.Values.zeebeGateway).enabled (index .Values "zeebe-gateway").enabled -}}
+  {{ include "camundaPlatform.keyRemoved" (dict
+    "condition" (.Values.zeebeGateway)
+    "oldName" "zeebeGateway"
+  ) }}
+  {{ include "camundaPlatform.keyRemoved" (dict
+    "condition" (index .Values "zeebe-gateway")
+    "oldName" "zeebe-gateway"
+  ) }}
+{{- end }}
+
+{{- if (.Values.operate).enabled -}}
+  {{ include "camundaPlatform.keyRemoved" (dict
+    "condition" (.Values.operate)
+    "oldName" "operate"
+  ) }}
+{{- end }}
+
+{{/*
+{{- if (.Values.optimize).enabled -}}
+  {{ include "camundaPlatform.keyRemoved" (dict
+    "condition" (.Values.optimize)
+    "oldName" "optimize"
+  ) }}
+{{- end }}
+*/}}
+
+{{- if (.Values.tasklist).enabled -}}
+  {{ include "camundaPlatform.keyRemoved" (dict
+    "condition" (.Values.tasklist)
+    "oldName" "tasklist"
+  ) }}
+{{- end }}
+
+{{/*
+*******************************************************************************
+Separated Ingress.
+*******************************************************************************
+*/}}
+
+{{ include "camundaPlatform.keyRemoved" (dict
+  "condition" ((.Values.identity.ingress).enabled)
+  "oldName" "identity.ingress"
+) }}
+
+{{ include "camundaPlatform.keyRemoved" (dict
+  "condition" ((.Values.console.ingress).enabled)
+  "oldName" "console.ingress"
+) }}
+
+{{ include "camundaPlatform.keyRemoved" (dict
+  "condition" ((.Values.webModeler.ingress).enabled)
+  "oldName" "webModeler.ingress"
+) }}
+
+{{ include "camundaPlatform.keyRemoved" (dict
+  "condition" ((.Values.connectors.ingress).enabled)
+  "oldName" "connectors.ingress"
+) }}
+
+{{ include "camundaPlatform.keyRemoved" (dict
+  "condition" ((.Values.core.ingress).enabled)
+  "oldName" "core.ingress"
+) }}

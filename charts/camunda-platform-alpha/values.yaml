@@ -2092,7 +2092,6 @@ core:
     ## @param core.serviceAccount.automountServiceAccountToken can be used to control whether the service account token should be automatically mounted
     automountServiceAccountToken: false
 
-
   ingress:
     grpc:
       ## @param core.ingress.grpc.enabled if true, an ingress resource is deployed with the Zeebe gateway deployment. Only useful if an ingress controller is available, like nginx.
@@ -2122,35 +2121,6 @@ core:
         enabled: false
         ## @param core.ingress.grpc.tls.secretName defines the secret name which contains the TLS private key and certificate
         secretName: camunda-platform-core-grpc
-    http:
-      ## @param core.ingress.http.enabled if true, an ingress resource is deployed with the Zeebe gateway deployment. Only useful if an ingress controller is available, like nginx.
-      enabled: false
-      ## @param core.ingress.http.className defines the class or configuration of ingress which should be used by the controller
-      className: nginx
-      ## @param core.ingress.http.annotations [object] defines the ingress related annotations, consumed mostly by the ingress controller
-      ## @skip core.ingress.http.annotations.ingress.kubernetes.io/rewrite-target
-      ## @skip core.ingress.http.annotations.nginx.ingress.kubernetes.io/ssl-redirect
-      ## @skip core.ingress.http.annotations.nginx.ingress.kubernetes.io/backend-protocol
-      ## @skip core.ingress.http.annotations.nginx.ingress.kubernetes.io/proxy-buffer-size
-      annotations:
-        ingress.kubernetes.io/rewrite-target: '/'
-        nginx.ingress.kubernetes.io/ssl-redirect: 'false'
-        nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-        nginx.ingress.kubernetes.io/proxy-buffer-size: '128k'
-        nginx.ingress.kubernetes.io/proxy-buffering: 'on'
-      ## @param core.ingress.http.path defines the path which is associated with the Core HTTP service and port https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
-      path: /
-      ## @param core.ingress.http.pathType can be used to define the Ingress path type. https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types
-      pathType: Prefix
-      ## @param core.ingress.http.host can be used to define the host of the ingress rule. https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
-      # If not specified the rules applies to all inbound gRPC traffic, if specified the rule applies to that host.
-      host: ""
-      ## @extra core.ingress.http.tls configuration for tls on the ingress resource https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
-      tls:
-        ## @param core.ingress.http.tls.enabled if true, then tls is configured on the ingress resource. If enabled the Ingress.host need to be defined.
-        enabled: false
-        ## @param core.ingress.http.tls.secretName defines the secret name which contains the TLS private key and certificate
-        secretName: camunda-platform-core-http
 
   # contextPath: "/core"
   ## @param core.contextPath can be used to make Core web application works on a custom sub-path. This is mainly used to run Camunda web applications under a single domain.
@@ -2179,19 +2149,18 @@ core:
   #   local - means the data is stored into the container, no volumeMount nor volume nor claim is configured
   #   memory   - means it uses a tmpfs for the data persistence, be aware that this takes the limits into account
   persistenceType: disk
-  pvc:
-    ## @param core.pvc.size defines the persistent volume claim size, which is used by each broker pod https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims
-    size: "32Gi"
-    ## @param core.pvc.accessModes can be used to configure the persistent volume claim access mode https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
-    accessModes: ["ReadWriteOnce"]
-    ## @param core.pvc.storageClassName can be used to set the storage class name which should be used by the persistent volume claim.
-    # It is recommended to use a storage class, which is backed with a SSD. Set to "-" to disable use of default storage class.
-    storageClassName: ''
-    ## @param core.pvc.annotations can be used to specify custom annotations for persistent volume claims, enhancing storage configuration flexibility.
-    annotations: {}
-    ## @param core.pvc.selector can be used to specify a label selector for persistent volume claims for further filtering of the set of persistent volumes to select.
-    # https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector
-    selector: {}
+  ## @param core.pvcSize defines the persistent volume claim size, which is used by each broker pod https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims
+  pvcSize: "32Gi"
+  ## @param core.pvcAccessModes can be used to configure the persistent volume claim access mode https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes
+  pvcAccessModes: ["ReadWriteOnce"]
+  ## @param core.pvcStorageClassName can be used to set the storage class name which should be used by the persistent volume claim.
+  # It is recommended to use a storage class, which is backed with a SSD. Set to "-" to disable use of default storage class.
+  pvcStorageClassName: ''
+  ## @param core.pvcAnnotations can be used to specify custom annotations for persistent volume claims, enhancing storage configuration flexibility.
+  pvcAnnotations: {}
+  ## @param core.pvcSelector can be used to specify a label selector for persistent volume claims for further filtering of the set of persistent volumes to select.
+  # https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector
+  pvcSelector: {}
   ## @param core.extraVolumes can be used to define extra volumes for the broker pods, useful for additional exporters
   extraVolumes: []
   ## @param core.extraVolumeMounts can be used to mount extra volumes for the broker pods, useful for additional exporters
